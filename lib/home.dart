@@ -43,7 +43,7 @@ class Home extends StatelessWidget {
     required int index,
     required Journal journal,
   }) {
-    // do somethig
+    // do something
   }
 }
 
