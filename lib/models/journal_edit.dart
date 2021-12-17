@@ -7,5 +7,5 @@ class JournalEdit {
   });
 
   String action;
-  Journal journal;
+  OldJournal journal;
 }

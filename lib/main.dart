@@ -7,11 +7,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Local Persistence',
+      title: 'Journal',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primarySwatch: Colors.blue,
-        bottomAppBarColor: Colors.blue,
+        primarySwatch: Colors.lightGreen,
+        canvasColor: Colors.lightGreen.shade50,
+        bottomAppBarColor: Colors.lightGreen,
       ),
       home: Home(),
     );

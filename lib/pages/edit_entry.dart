@@ -14,7 +14,7 @@ class EditEntry extends StatefulWidget {
 
   final bool add;
   final int index;
-  final Journal journal;
+  final OldJournal journal;
 
   @override
   _EditEntryState createState() => _EditEntryState();
@@ -161,7 +161,7 @@ class _EditEntryState extends State<EditEntry> {
                       final id = widget.add
                           ? Random().nextInt(9999999).toString()
                           : _journalEdit.journal.id;
-                      final newJournal = Journal(
+                      final newJournal = OldJournal(
                         id: id,
                         date: _selectedDate.toString(),
                         mood: _moodController.text,

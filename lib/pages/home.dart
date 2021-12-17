@@ -21,10 +21,38 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Local Persistence'),
+        title: Text(
+          'Journal',
+          style: TextStyle(
+            color: Colors.lightGreen.shade800,
+          ),
+        ),
+        elevation: 0,
+        bottom: PreferredSize(
+          child: Container(),
+          preferredSize: Size.fromHeight(32),
+        ),
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.lightGreen, Colors.lightGreen.shade100],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+          ),
+        ),
+        actions: [
+          IconButton(
+            onPressed: () {
+              // TODO add a method to sign out the current user
+            },
+            icon: Icon(Icons.exit_to_app),
+            color: Colors.lightGreen.shade800,
+          ),
+        ],
       ),
       body: SafeArea(
-        child: FutureBuilder<List<Journal>>(
+        child: FutureBuilder<List<OldJournal>>(
           initialData: [],
           future: _localJournals(),
           builder: (context, snapshot) {
@@ -36,7 +64,17 @@ class _HomeState extends State<Home> {
       ),
       bottomNavigationBar: BottomAppBar(
         shape: CircularNotchedRectangle(),
-        child: Padding(padding: EdgeInsets.all(24)),
+        child: Container(
+          height: 44,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.lightGreen.shade200, Colors.lightGreen],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+          ),
+        ),
+        elevation: 0,
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: FloatingActionButton(
@@ -44,7 +82,7 @@ class _HomeState extends State<Home> {
           context: context,
           add: true,
           index: -1,
-          journal: Journal(
+          journal: OldJournal(
             date: '',
             id: '',
             mood: '',
@@ -53,11 +91,12 @@ class _HomeState extends State<Home> {
         ),
         tooltip: 'Add Journal Entry',
         child: Icon(Icons.add),
+        backgroundColor: Colors.lightGreen.shade300,
       ),
     );
   }
 
-  Future<List<Journal>> _localJournals() async {
+  Future<List<OldJournal>> _localJournals() async {
     final journals = await _databaseFileRoutines.readJournals();
 
     journals.sort((j1, j2) => j2.date.compareTo(j1.date));
@@ -67,7 +106,7 @@ class _HomeState extends State<Home> {
     return _database.journals;
   }
 
-  Widget _buildListViewSeparated(AsyncSnapshot<List<Journal>> snapshot) {
+  Widget _buildListViewSeparated(AsyncSnapshot<List<OldJournal>> snapshot) {
     return ListView.separated(
       itemBuilder: (context, index) {
         final journal = snapshot.data![index];
@@ -132,7 +171,7 @@ class _HomeState extends State<Home> {
     required BuildContext context,
     required bool add,
     required int index,
-    required Journal journal,
+    required OldJournal journal,
   }) async {
     final journalEdit = await Navigator.of(context).push(
       MaterialPageRoute(
