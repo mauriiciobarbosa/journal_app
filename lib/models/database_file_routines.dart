@@ -19,7 +19,7 @@ class DatabaseFileRoutines {
     return File('$path/local_persistence.json');
   }
 
-  Future<List<OldJournal>> readJournals() async {
+  Future<List<Journal>> readJournals() async {
     try {
       final file = await _localFile;
 
@@ -37,12 +37,12 @@ class DatabaseFileRoutines {
     }
   }
 
-  Future<File> writeJournals(List<OldJournal> journals) async {
+  Future<File> writeJournals(List<Journal> journals) async {
     final file = await _localFile;
     final json = {
       'journals': List<dynamic>.from(
         journals.map(
-          (e) => e.toJson(),
+          (e) => e.toDoc(),
         ),
       )
     };

@@ -3,11 +3,10 @@ import 'package:flutter/material.dart';
 import 'authentication_bloc.dart';
 
 class AuthenticationBlocProvider extends InheritedWidget {
-  const AuthenticationBlocProvider(
-    Key key,
-    Widget child, {
+  const AuthenticationBlocProvider({
+    required Widget child,
     required this.authenticationBloc,
-  }) : super(key: key, child: child);
+  }) : super(child: child);
 
   final AuthenticationBloc authenticationBloc;
 

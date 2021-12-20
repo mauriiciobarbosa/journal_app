@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:intl/intl.dart';
-import 'package:journal_app/models/database.dart';
-import 'package:journal_app/models/database_file_routines.dart';
-import 'package:journal_app/models/journal_edit.dart';
+import 'package:journal_app/blocs/authentication_bloc.dart';
+import 'package:journal_app/blocs/authentication_bloc_provider.dart';
+import 'package:journal_app/blocs/home_bloc.dart';
+import 'package:journal_app/blocs/home_bloc_provider.dart';
+import 'package:journal_app/blocs/journal_edit_bloc.dart';
+import 'package:journal_app/blocs/journal_edit_bloc_provider.dart';
+import 'package:journal_app/classes/format_dates.dart';
+import 'package:journal_app/classes/mood_icons.dart';
 import 'package:journal_app/pages/edit_entry.dart';
+import 'package:journal_app/services/db_firestore.dart';
 
 import '../models/journal.dart';
 
@@ -14,8 +19,26 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  final _databaseFileRoutines = DatabaseFileRoutines();
-  late Database _database;
+  late AuthenticationBloc _authenticationBloc;
+  late HomeBloc _homeBloc;
+  late String _uid;
+  final FormatDates _formatDates = FormatDates();
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _authenticationBloc =
+        AuthenticationBlocProvider.of(context).authenticationBloc;
+    _homeBloc = HomeBlocProvider.of(context).homeBloc;
+    _uid = HomeBlocProvider.of(context).uid;
+  }
+
+  @override
+  void dispose() {
+    // _homeBloc.dispose();
+
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +67,7 @@ class _HomeState extends State<Home> {
         actions: [
           IconButton(
             onPressed: () {
-              // TODO add a method to sign out the current user
+              _authenticationBloc.logoutUser.add(true);
             },
             icon: Icon(Icons.exit_to_app),
             color: Colors.lightGreen.shade800,
@@ -52,13 +75,17 @@ class _HomeState extends State<Home> {
         ],
       ),
       body: SafeArea(
-        child: FutureBuilder<List<OldJournal>>(
+        child: StreamBuilder<List<Journal>>(
           initialData: [],
-          future: _localJournals(),
+          stream: _homeBloc.listJournal,
           builder: (context, snapshot) {
-            return snapshot.hasData
-                ? _buildListViewSeparated(snapshot)
-                : Center(child: CircularProgressIndicator());
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasData) {
+              return _buildListViewSeparated(snapshot);
+            } else {
+              return Center(child: Text('Add Journals.'));
+            }
           },
         ),
       ),
@@ -79,14 +106,13 @@ class _HomeState extends State<Home> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: FloatingActionButton(
         onPressed: () => _addOrEditJournal(
-          context: context,
           add: true,
-          index: -1,
-          journal: OldJournal(
+          journal: Journal(
+            documentID: '',
             date: '',
-            id: '',
             mood: '',
             note: '',
+            uid: _uid,
           ),
         ),
         tooltip: 'Add Journal Entry',
@@ -96,23 +122,14 @@ class _HomeState extends State<Home> {
     );
   }
 
-  Future<List<OldJournal>> _localJournals() async {
-    final journals = await _databaseFileRoutines.readJournals();
-
-    journals.sort((j1, j2) => j2.date.compareTo(j1.date));
-
-    _database = Database(journals: journals);
-
-    return _database.journals;
-  }
-
-  Widget _buildListViewSeparated(AsyncSnapshot<List<OldJournal>> snapshot) {
+  Widget _buildListViewSeparated(AsyncSnapshot<List<Journal>> snapshot) {
     return ListView.separated(
+      itemCount: snapshot.data!.length,
+      separatorBuilder: (context, index) => Divider(color: Colors.grey),
       itemBuilder: (context, index) {
         final journal = snapshot.data![index];
-        final date = DateTime.parse(journal.date);
         return Dismissible(
-          key: Key(journal.id),
+          key: Key(journal.documentID),
           background: Container(
             color: Colors.red,
             alignment: Alignment.centerLeft,
@@ -125,76 +142,96 @@ class _HomeState extends State<Home> {
             padding: EdgeInsets.only(right: 16),
             child: Icon(Icons.delete, color: Colors.white),
           ),
-          onDismissed: (direction) {
-            setState(() {
-              _database.journals.removeAt(index);
-            });
-            _databaseFileRoutines.writeJournals(_database.journals);
+          confirmDismiss: (_) async {
+            final confirmDelete = await _confirmDeleteJournal();
+
+            if (confirmDelete) _homeBloc.deleteJournal.add(journal);
           },
           child: ListTile(
             contentPadding: EdgeInsets.all(16),
             leading: Column(
               children: [
                 Text(
-                  DateFormat.d().format(date),
+                  _formatDates.dateFormatDayNumber(journal.date),
                   style: TextStyle(
-                    color: Colors.blue,
+                    color: Colors.lightGreen,
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                Text('${DateFormat.E().format(date)}')
+                Text(_formatDates.dateFormatDayName(journal.date))
               ],
             ),
+            trailing: Transform(
+              transform: Matrix4.identity()
+                ..rotateZ(getMoodRotation(journal.mood)),
+              alignment: Alignment.center,
+              child: Icon(
+                getMoodIcon(journal.mood),
+                color: getMoodColor(journal.mood),
+                size: 42,
+              ),
+            ),
             title: Text(
-              '${DateFormat('MMM dd, y').format(date)}',
+              _formatDates.dateFormatShortMonthDayYear(journal.date),
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             subtitle: Text('${journal.mood}\n${journal.note}'),
             onTap: () => _addOrEditJournal(
-              context: context,
               add: false,
-              index: index,
               journal: journal,
             ),
           ),
         );
       },
-      separatorBuilder: (context, index) => Divider(
-        color: Colors.grey,
-      ),
-      itemCount: snapshot.data!.length,
     );
   }
 
   void _addOrEditJournal({
-    required BuildContext context,
     required bool add,
-    required int index,
-    required OldJournal journal,
+    required Journal journal,
   }) async {
-    final journalEdit = await Navigator.of(context).push(
+    await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => EditEntry(
-          add: add,
-          index: index,
+        builder: (context) => JournalEditBlocProvider(
           journal: journal,
+          journalEditBloc: JournalEditBloc(
+            add,
+            journal,
+            DbFirestoreService(),
+          ),
+          add: add,
+          child: EditEntry(),
         ),
         fullscreenDialog: true,
       ),
     );
+  }
 
-    if (journalEdit is JournalEdit && journalEdit.action == 'Save') {
-      if (add) {
-        setState(() {
-          _database.journals.add(journalEdit.journal);
-        });
-      } else {
-        setState(() {
-          _database.journals[index] = journalEdit.journal;
-        });
-      }
-      _databaseFileRoutines.writeJournals(_database.journals);
-    }
+  Future<bool> _confirmDeleteJournal() async {
+    return await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Delete Journal'),
+          content: Text('Are you sure you would like to Delete?'),
+          actions: [
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.pop(context, false);
+              },
+            ),
+            TextButton(
+              child: Text('Delete', style: TextStyle(color: Colors.red)),
+              onPressed: () {
+                Navigator.pop(context, true);
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 }

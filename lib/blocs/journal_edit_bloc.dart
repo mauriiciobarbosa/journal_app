@@ -66,11 +66,12 @@ class JournalEditBloc {
         note: '',
         uid: journal.uid,
       );
-    } else {
-      selectedJournal.date = journal.date;
-      selectedJournal.mood = journal.mood;
-      selectedJournal.note = journal.note;
     }
+    // else {
+    //   selectedJournal.date = journal.date;
+    //   selectedJournal.mood = journal.mood;
+    //   selectedJournal.note = journal.note;
+    // }
 
     dateEditChanged.add(selectedJournal.date);
     moodEditChanged.add(selectedJournal.mood);

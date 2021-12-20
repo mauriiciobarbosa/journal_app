@@ -5,8 +5,6 @@ import 'package:journal_app/services/db_firestore_api.dart';
 class DbFirestoreService implements DbApi {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // List<Journal> _collectionJournals = [];
-
   static const _collectionJournals = 'journals';
 
   @override
@@ -28,7 +26,7 @@ class DbFirestoreService implements DbApi {
     _firestore
         .collection(_collectionJournals)
         .doc(journal.documentID)
-        .update(journal.toDoc().remove('uid'))
+        .update(journal.toDoc())
         .catchError((error) => print('Error updating: $error'));
   }
 
@@ -39,12 +37,6 @@ class DbFirestoreService implements DbApi {
         .doc(journal.documentID)
         .delete()
         .catchError((error) => print('Error deleting: $error'));
-  }
-
-  @override
-  Future<Journal> getJournal(String documentId) {
-    // TODO: implement getJournal
-    throw UnimplementedError();
   }
 
   @override
@@ -63,10 +55,5 @@ class DbFirestoreService implements DbApi {
         return journalDocs;
       },
     );
-  }
-
-  @override
-  void updateJournalWithTransaction(Journal journal) {
-    // TODO: implement updateJournalWithTransaction
   }
 }

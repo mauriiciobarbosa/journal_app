@@ -5,6 +5,10 @@ class FormatDates {
     return DateFormat.yMMMd().format(DateTime.parse(date));
   }
 
+  String dateFormatLongMonthDayYear(String date) {
+    return DateFormat.yMMMEd().format(DateTime.parse(date));
+  }
+
   String dateFormatDayNumber(String date) {
     return DateFormat.d().format(DateTime.parse(date));
   }

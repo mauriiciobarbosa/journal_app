@@ -12,20 +12,18 @@ class MoodIcons {
   final Color color;
   final double rotation;
   final IconData icon;
-
-  IconData getMoodIcon(String mood) =>
-      _moodIconsList.firstWhere((icon) => icon.title == mood).icon;
-
-  Color getMoodColor(String mood) =>
-      _moodIconsList.firstWhere((icon) => icon.title == mood).color;
-
-  double getMoodRotation(String mood) =>
-      _moodIconsList.firstWhere((icon) => icon.title == mood).rotation;
-
-  List<MoodIcons> getMoodList() => _moodIconsList;
 }
 
-final List<MoodIcons> _moodIconsList = [
+IconData getMoodIcon(String mood) =>
+    moodIconsList.firstWhere((icon) => icon.title == mood).icon;
+
+Color getMoodColor(String mood) =>
+    moodIconsList.firstWhere((icon) => icon.title == mood).color;
+
+double getMoodRotation(String mood) =>
+    moodIconsList.firstWhere((icon) => icon.title == mood).rotation;
+
+final List<MoodIcons> moodIconsList = [
   MoodIcons(
     title: 'Very Satisfied',
     color: Colors.amber,

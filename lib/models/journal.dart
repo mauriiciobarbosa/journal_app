@@ -41,13 +41,15 @@ class Journal {
   String note;
   String uid;
 
-  factory Journal.fromDoc(dynamic doc) => Journal(
-        documentID: doc.documentID,
-        date: doc['date'],
-        mood: doc['mood'],
-        note: doc['note'],
-        uid: doc['uid'],
-      );
+  factory Journal.fromDoc(dynamic doc) {
+    return Journal(
+      documentID: doc.id,
+      date: doc['date'],
+      mood: doc['mood'],
+      note: doc['note'],
+      uid: doc['uid'],
+    );
+  }
 
   Map<String, dynamic> toDoc() => {
         'uid': uid,

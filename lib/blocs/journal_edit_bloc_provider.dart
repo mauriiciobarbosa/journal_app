@@ -4,13 +4,12 @@ import 'package:journal_app/models/journal.dart';
 import 'journal_edit_bloc.dart';
 
 class JournalEditBlocProvider extends InheritedWidget {
-  const JournalEditBlocProvider(
-    Key key,
-    Widget child, {
+  const JournalEditBlocProvider({
     required this.journalEditBloc,
     required this.add,
     required this.journal,
-  }) : super(key: key, child: child);
+    required Widget child,
+  }) : super(child: child);
 
   final JournalEditBloc journalEditBloc;
   final bool add;

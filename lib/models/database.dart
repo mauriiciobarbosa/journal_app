@@ -3,13 +3,13 @@ import 'journal.dart';
 class Database {
   Database({required this.journals});
 
-  List<OldJournal> journals;
+  List<Journal> journals;
 
   factory Database.fromJson(Map<String, dynamic> json) {
     return Database(
-      journals: List<OldJournal>.from(
+      journals: List<Journal>.from(
         json['journals'].map(
-          (x) => OldJournal.fromJson(x),
+          (x) => Journal.fromDoc(x),
         ),
       ),
     );
@@ -19,7 +19,7 @@ class Database {
     return {
       'journals': List<dynamic>.from(
         journals.map(
-          (e) => e.toJson(),
+          (e) => e.toDoc(),
         ),
       ),
     };
